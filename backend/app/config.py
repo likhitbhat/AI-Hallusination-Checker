@@ -1,9 +1,11 @@
 import os
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
     APP_NAME: str = "Hybrid AI Hallucination Checker"
     APP_ENV: str = "development"
     DEBUG: bool = True
@@ -61,10 +63,6 @@ class Settings(BaseSettings):
     # Limits
     MAX_CLAIMS_PER_REQUEST: int = 25
     REQUEST_TIMEOUT_SECONDS: int = 45
-
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
 
 
 settings = Settings()

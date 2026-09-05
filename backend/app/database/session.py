@@ -25,6 +25,8 @@ AsyncSessionLocal = async_sessionmaker(
 async def init_db():
     """Create tables on startup if they do not exist."""
     try:
+        # Import models so that tables are registered on Base.metadata
+        import app.models.verification  # noqa: F401
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Database schema initialized successfully.")

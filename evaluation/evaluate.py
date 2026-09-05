@@ -6,12 +6,24 @@ import time
 
 # Add project root and backend directory to sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, PROJECT_ROOT)
-sys.path.insert(0, os.path.join(PROJECT_ROOT, "backend"))
+BACKEND_DIR = os.path.join(PROJECT_ROOT, "backend")
 
-from app.api.schemas import VerifyRequest
-from app.services.result_generator import result_generator
-from evaluation.metrics import calculate_evaluation_metrics
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
+
+try:
+    from app.api.schemas import VerifyRequest
+    from app.services.result_generator import result_generator
+except ImportError:
+    from backend.app.api.schemas import VerifyRequest
+    from backend.app.services.result_generator import result_generator
+
+try:
+    from evaluation.metrics import calculate_evaluation_metrics
+except ImportError:
+    from metrics import calculate_evaluation_metrics
 
 
 async def run_benchmark():

@@ -30,7 +30,7 @@
       "f1_score": 0.7273,
       "false_positive_rate": 0.2857,
       "false_negative_rate": 0.2,
-      "average_latency_seconds": 0.3721
+      "average_latency_seconds": 0.3897
     }
   }
 }

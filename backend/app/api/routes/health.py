@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter
 from app.config import settings
 from app.api.schemas import HealthResponse
@@ -12,5 +12,5 @@ async def get_health():
         status="healthy",
         version="1.0.0",
         environment=settings.APP_ENV,
-        timestamp=datetime.utcnow().isoformat() + "Z"
+        timestamp=datetime.now(timezone.utc).isoformat()
     )

@@ -1,8 +1,12 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, Float, Integer, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from app.database.session import Base
+
+
+def utc_now():
+    return datetime.now(timezone.utc)
 
 
 class VerificationRequestRecord(Base):
@@ -14,7 +18,7 @@ class VerificationRequestRecord(Base):
     overall_score = Column(Float, nullable=False)
     overall_status = Column(String(32), nullable=False)
     claims_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
 
     claims = relationship("ClaimRecord", back_populates="request", cascade="all, delete-orphan")
 
@@ -34,7 +38,7 @@ class ClaimRecord(Base):
     source_reliability = Column(Float, default=0.0)
     rule_score = Column(Float, default=1.0)
     explanation = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
 
     request = relationship("VerificationRequestRecord", back_populates="claims")
     evidence = relationship("EvidenceRecord", back_populates="claim", cascade="all, delete-orphan")
@@ -50,6 +54,6 @@ class EvidenceRecord(Base):
     snippet = Column(Text, nullable=False)
     reliability_score = Column(Float, default=0.5)
     domain = Column(String(256), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
 
     claim = relationship("ClaimRecord", back_populates="evidence")
