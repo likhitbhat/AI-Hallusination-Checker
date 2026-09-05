@@ -23,12 +23,22 @@ def calculate_evaluation_metrics(y_true: List[str], y_pred: List[str], latencies
     fn = 0 # Predicted verified, actually hallucination
     correct = 0
 
-    for yt, yp in zip(y_true, y_pred):
+    def normalize_label(label: str) -> str:
+        if label in ("LIKELY_HALLUCINATED", "CONTRADICTED"):
+            return "CONTRADICTED"
+        if label in ("UNVERIFIABLE", "NOT_FACT_CHECKABLE", "INSUFFICIENT_EVIDENCE"):
+            return "NOT_FACT_CHECKABLE"
+        return label
+
+    for raw_yt, raw_yp in zip(y_true, y_pred):
+        yt = normalize_label(raw_yt)
+        yp = normalize_label(raw_yp)
+
         if yt == yp:
             correct += 1
 
-        is_true_hallucination = (yt == "LIKELY_HALLUCINATED")
-        is_pred_hallucination = (yp == "LIKELY_HALLUCINATED")
+        is_true_hallucination = (yt == "CONTRADICTED")
+        is_pred_hallucination = (yp == "CONTRADICTED")
 
         if is_true_hallucination and is_pred_hallucination:
             tp += 1

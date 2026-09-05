@@ -137,29 +137,46 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!data) return;
 
     overallScoreText.innerText = Math.round(data.overall_score * 100) + "%";
-    overallStatusBadge.innerText = data.overall_status.replace("_", " ");
+
+    let displayStatus = data.overall_status.replace(/_/g, " ");
+    if (data.overall_status === "CONTRADICTED") displayStatus = "Likely Hallucinated";
+    else if (data.overall_status === "INSUFFICIENT_EVIDENCE") displayStatus = "Cannot Verify";
+    else if (data.overall_status === "NOT_FACT_CHECKABLE") displayStatus = "Not Fact-Checkable";
+
+    overallStatusBadge.innerText = displayStatus;
     overallStatusBadge.className = `status-pill status-${data.overall_status}`;
 
     verifiedCount.innerText = data.verified || 0;
     partialCount.innerText = data.partially_supported || 0;
-    hallucinatedCount.innerText = data.hallucinated || 0;
+    hallucinatedCount.innerText = data.contradicted !== undefined ? data.contradicted : (data.hallucinated || 0);
     insufficientCount.innerText = data.insufficient_evidence || 0;
 
     resultsCard.classList.remove("hidden");
 
     // Render claims
     claimsList.innerHTML = "";
-    claimsTotalCount.innerText = data.claims ? data.claims.length : 0;
+    const totalCount = data.claims ? data.claims.length : 0;
+    const factCheckableCount = data.fact_checkable_claims !== undefined ? data.fact_checkable_claims : totalCount;
+    claimsTotalCount.innerText = `${factCheckableCount} / ${totalCount}`;
 
     if (data.claims && data.claims.length > 0) {
       claimsSection.classList.remove("hidden");
       data.claims.forEach(c => {
         const card = document.createElement("div");
         card.className = `claim-card status-${c.status}`;
+
+        let claimBadgeText = c.status.replace(/_/g, " ");
+        if (c.status === "CONTRADICTED") claimBadgeText = "🔴 Likely Hallucinated";
+        else if (c.status === "VERIFIED") claimBadgeText = "🟢 Verified";
+        else if (c.status === "PARTIALLY_SUPPORTED") claimBadgeText = "🟡 Partial";
+        else if (c.status === "CONFLICTING_EVIDENCE") claimBadgeText = "🟠 Conflicting";
+        else if (c.status === "NOT_FACT_CHECKABLE") claimBadgeText = "⚪ Not Fact-Checkable";
+        else if (c.status === "INSUFFICIENT_EVIDENCE") claimBadgeText = "⚪ Cannot Verify";
+
         card.innerHTML = `
           <div class="claim-card-header">
             <span class="claim-type-tag">${c.type}</span>
-            <span style="font-weight: 700; font-size: 11px;">${Math.round(c.confidence * 100)}%</span>
+            <span style="font-weight: 700; font-size: 11px;">${claimBadgeText} (${Math.round(c.confidence * 100)}%)</span>
           </div>
           <div class="claim-card-text">${c.claim}</div>
           <div class="claim-card-meta">

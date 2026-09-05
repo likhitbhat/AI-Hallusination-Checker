@@ -27,15 +27,24 @@
   background-color: rgba(245, 158, 11, 0.35);
 }
 
+.ai-fact-highlight.status-CONTRADICTED,
 .ai-fact-highlight.status-LIKELY_HALLUCINATED {
   background-color: rgba(239, 68, 68, 0.22);
   border-bottom: 2px solid #ef4444;
 }
+.ai-fact-highlight.status-CONTRADICTED:hover,
 .ai-fact-highlight.status-LIKELY_HALLUCINATED:hover {
   background-color: rgba(239, 68, 68, 0.35);
 }
 
-.ai-fact-highlight.status-INSUFFICIENT_EVIDENCE {
+.ai-fact-highlight.status-CONFLICTING_EVIDENCE {
+  background-color: rgba(249, 115, 22, 0.22);
+  border-bottom: 2px solid #f97316;
+}
+
+.ai-fact-highlight.status-INSUFFICIENT_EVIDENCE,
+.ai-fact-highlight.status-NOT_FACT_CHECKABLE,
+.ai-fact-highlight.status-UNVERIFIABLE {
   background-color: rgba(148, 163, 184, 0.2);
   border-bottom: 2px dashed #94a3b8;
 }
@@ -61,9 +70,19 @@
   background: #78350f;
   color: #fde68a;
 }
+.ai-fact-badge.status-CONTRADICTED,
 .ai-fact-badge.status-LIKELY_HALLUCINATED {
   background: #7f1d1d;
   color: #fca5a5;
+}
+.ai-fact-badge.status-CONFLICTING_EVIDENCE {
+  background: #7c2d12;
+  color: #fdba74;
+}
+.ai-fact-badge.status-NOT_FACT_CHECKABLE,
+.ai-fact-badge.status-UNVERIFIABLE {
+  background: #1e293b;
+  color: #cbd5e1;
 }
 .ai-fact-badge.status-INSUFFICIENT_EVIDENCE {
   background: #1e293b;

@@ -65,7 +65,26 @@ class RuleEngine:
             else:
                 return 0.0, f"Mathematical computation contradicted: {n1} {op} {n2} = {expected}, but claim states {stated}."
 
-        # 3. Impossible or Future Historical Year Bounds
+        # 3. Evaluate Numerical Comparisons: "X is greater than Y", "X is less than Y"
+        comp_match = re.search(
+            r"(\d+(?:\.\d+)?)\s+is\s+(greater than|more than|larger than|less than|smaller than)\s+(\d+(?:\.\d+)?)",
+            text,
+            re.IGNORECASE
+        )
+        if comp_match:
+            n1 = float(comp_match.group(1))
+            rel = comp_match.group(2).lower()
+            n2 = float(comp_match.group(3))
+
+            is_greater_op = rel in ("greater than", "more than", "larger than")
+            is_valid = (n1 > n2) if is_greater_op else (n1 < n2)
+
+            if is_valid:
+                return 1.0, f"Deterministic comparison verified: {n1} is {rel} {n2}."
+            else:
+                return 0.0, f"Deterministic comparison contradicted: {n1} is NOT {rel} {n2}."
+
+        # 4. Impossible or Future Historical Year Bounds
         year_match = re.search(r"\b(?:in|year|formed in|founded in)\s+(\d{4})\b", text, re.IGNORECASE)
         if year_match:
             year = int(year_match.group(1))

@@ -81,9 +81,11 @@ async def get_analytics(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
         "status_breakdown": {
             "verified": status_counts.get("VERIFIED", 0),
             "partially_supported": status_counts.get("PARTIALLY_SUPPORTED", 0),
-            "hallucinated": status_counts.get("LIKELY_HALLUCINATED", 0),
+            "contradicted": status_counts.get("CONTRADICTED", 0) + status_counts.get("LIKELY_HALLUCINATED", 0),
+            "conflicting_evidence": status_counts.get("CONFLICTING_EVIDENCE", 0),
             "insufficient_evidence": status_counts.get("INSUFFICIENT_EVIDENCE", 0),
-            "unverifiable": status_counts.get("UNVERIFIABLE", 0),
+            "not_fact_checkable": status_counts.get("NOT_FACT_CHECKABLE", 0) + status_counts.get("UNVERIFIABLE", 0),
+            "hallucinated": status_counts.get("CONTRADICTED", 0) + status_counts.get("LIKELY_HALLUCINATED", 0),
         },
         "platforms": platform_counts
     }

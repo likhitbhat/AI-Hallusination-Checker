@@ -133,4 +133,4 @@ async def test_full_verification_pipeline():
         # Australia capital should be flagged as likely hallucinated or contradicted
         aus_claim = next((c for c in data["claims"] if "Australia" in c["claim"] or "Sydney" in c["claim"]), None)
         assert aus_claim is not None
-        assert aus_claim["status"] in [VerificationStatus.LIKELY_HALLUCINATED.value, VerificationStatus.PARTIALLY_SUPPORTED.value]
+        assert aus_claim["status"] in [VerificationStatus.CONTRADICTED.value, VerificationStatus.PARTIALLY_SUPPORTED.value]

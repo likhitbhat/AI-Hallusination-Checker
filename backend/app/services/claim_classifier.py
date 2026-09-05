@@ -47,6 +47,13 @@ class ClaimClassifier:
                 claim.is_verifiable = False
                 return claim
 
+        # Check definitions (prioritized before domain keywords)
+        for pat in self.DEFINITION_MARKERS:
+            if re.search(pat, text):
+                claim.type = ClaimType.DEFINITION
+                claim.is_verifiable = True
+                return claim
+
         # Check historical
         for pat in self.HISTORICAL_MARKERS:
             if re.search(pat, text):

@@ -22,9 +22,10 @@ class ClaimType(str, Enum):
 class VerificationStatus(str, Enum):
     VERIFIED = "VERIFIED"
     PARTIALLY_SUPPORTED = "PARTIALLY_SUPPORTED"
-    LIKELY_HALLUCINATED = "LIKELY_HALLUCINATED"
+    CONTRADICTED = "CONTRADICTED"
+    CONFLICTING_EVIDENCE = "CONFLICTING_EVIDENCE"
     INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
-    UNVERIFIABLE = "UNVERIFIABLE"
+    NOT_FACT_CHECKABLE = "NOT_FACT_CHECKABLE"
 
 
 class NLILabel(str, Enum):
@@ -76,10 +77,14 @@ class VerifyResponse(BaseModel):
     overall_score: float
     overall_status: VerificationStatus
     claims_analyzed: int
-    verified: int
-    partially_supported: int
-    hallucinated: int
-    insufficient_evidence: int
+    fact_checkable_claims: int = 0
+    verified: int = 0
+    partially_supported: int = 0
+    contradicted: int = 0
+    conflicting_evidence: int = 0
+    insufficient_evidence: int = 0
+    not_fact_checkable: int = 0
+    hallucinated: int = 0  # Compatibility field matching contradicted
     claims: List[ClaimResult]
 
 

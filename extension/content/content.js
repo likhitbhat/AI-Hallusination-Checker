@@ -66,11 +66,18 @@
       case "VERIFIED":
         return '<span class="ai-fact-badge status-VERIFIED">🟢 Verified</span>';
       case "PARTIALLY_SUPPORTED":
-        return '<span class="ai-fact-badge status-PARTIALLY_SUPPORTED">🟡 Partial</span>';
+        return '<span class="ai-fact-badge status-PARTIALLY_SUPPORTED">🟡 Partially Supported</span>';
+      case "CONTRADICTED":
       case "LIKELY_HALLUCINATED":
-        return '<span class="ai-fact-badge status-LIKELY_HALLUCINATED">🔴 Hallucinated</span>';
+        return '<span class="ai-fact-badge status-CONTRADICTED">🔴 Likely Hallucinated</span>';
+      case "CONFLICTING_EVIDENCE":
+        return '<span class="ai-fact-badge status-CONFLICTING_EVIDENCE">🟠 Conflicting Evidence</span>';
+      case "NOT_FACT_CHECKABLE":
+      case "UNVERIFIABLE":
+        return '<span class="ai-fact-badge status-NOT_FACT_CHECKABLE">⚪ Not Fact-Checkable</span>';
+      case "INSUFFICIENT_EVIDENCE":
       default:
-        return '<span class="ai-fact-badge status-INSUFFICIENT_EVIDENCE">⚪ Insufficient</span>';
+        return '<span class="ai-fact-badge status-INSUFFICIENT_EVIDENCE">⚪ Cannot Verify</span>';
     }
   }
 

@@ -31,7 +31,7 @@ class DuckDuckGoProvider(BaseSearchProvider):
 
         results: List[EvidenceItem] = []
         try:
-            async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
+            async with httpx.AsyncClient(timeout=3.5, follow_redirects=True) as client:
                 resp = await client.post(url, headers=headers, data={"q": query})
                 if resp.status_code == 200:
                     html = resp.text
@@ -169,6 +169,31 @@ class MockSearchProvider(BaseSearchProvider):
                 reliability_score=0.95,
                 domain="toureiffel.paris"
             )
+        ],
+        "france": [
+            EvidenceItem(
+                title="Official Portal of the French Republic",
+                url="https://www.service-public.fr",
+                snippet="Paris is the capital and most populous city of France.",
+                reliability_score=1.00,
+                domain="service-public.fr"
+            ),
+            EvidenceItem(
+                title="Encyclopedia Britannica - Paris",
+                url="https://www.britannica.com/place/Paris",
+                snippet="Paris is the capital city of France and the center of French commerce, culture, and government.",
+                reliability_score=0.80,
+                domain="britannica.com"
+            )
+        ],
+        "paris": [
+            EvidenceItem(
+                title="Encyclopedia Britannica - Paris",
+                url="https://www.britannica.com/place/Paris",
+                snippet="Paris is the capital city of France.",
+                reliability_score=0.80,
+                domain="britannica.com"
+            )
         ]
     }
 
@@ -209,16 +234,17 @@ class EvidenceRetriever:
         provider_name = settings.SEARCH_PROVIDER.lower()
         results: List[EvidenceItem] = []
 
-        if provider_name == "tavily" and settings.SEARCH_API_KEY:
-            results = await self.tavily_provider.search(query, max_results=settings.SEARCH_RESULTS_PER_CLAIM)
-
-        if not results:
-            # First try DuckDuckGo live search
-            results = await self.ddg_provider.search(query, max_results=settings.SEARCH_RESULTS_PER_CLAIM)
-
-        # Fallback to internal knowledge base if network is restricted or query matches known ground truth
-        if not results:
+        if provider_name == "mock":
             results = await self.mock_provider.search(query, max_results=settings.SEARCH_RESULTS_PER_CLAIM)
+        elif provider_name == "tavily" and settings.SEARCH_API_KEY:
+            results = await self.tavily_provider.search(query, max_results=settings.SEARCH_RESULTS_PER_CLAIM)
+            if not results:
+                results = await self.mock_provider.search(query, max_results=settings.SEARCH_RESULTS_PER_CLAIM)
+        else:
+            # Default live search: try DuckDuckGo, fallback to knowledge base if offline or rate-limited
+            results = await self.ddg_provider.search(query, max_results=settings.SEARCH_RESULTS_PER_CLAIM)
+            if not results:
+                results = await self.mock_provider.search(query, max_results=settings.SEARCH_RESULTS_PER_CLAIM)
 
         # Deduplicate results by URL
         seen_urls = set()

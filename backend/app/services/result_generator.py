@@ -180,10 +180,14 @@ class ResultGenerator:
             overall_score=overall_score,
             overall_status=overall_status,
             claims_analyzed=len(claim_results),
+            fact_checkable_claims=counts.get("fact_checkable_claims", len(claim_results)),
             verified=counts["verified"],
             partially_supported=counts["partially_supported"],
-            hallucinated=counts["hallucinated"],
+            contradicted=counts["contradicted"],
+            conflicting_evidence=counts["conflicting_evidence"],
             insufficient_evidence=counts["insufficient_evidence"],
+            not_fact_checkable=counts["not_fact_checkable"],
+            hallucinated=counts["hallucinated"],
             claims=claim_results
         )
 

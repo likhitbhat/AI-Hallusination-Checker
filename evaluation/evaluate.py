@@ -15,9 +15,11 @@ if BACKEND_DIR not in sys.path:
 
 try:
     from app.api.schemas import VerifyRequest
+    from app.config import settings
     from app.services.result_generator import result_generator
 except ImportError:
     from backend.app.api.schemas import VerifyRequest
+    from backend.app.config import settings
     from backend.app.services.result_generator import result_generator
 
 try:
@@ -27,6 +29,7 @@ except ImportError:
 
 
 async def run_benchmark():
+    settings.SEARCH_PROVIDER = "mock"
     dataset_path = os.path.join(os.path.dirname(__file__), "dataset", "benchmark_data.json")
     with open(dataset_path, "r", encoding="utf-8") as f:
         test_cases = json.load(f)

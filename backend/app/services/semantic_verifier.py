@@ -79,8 +79,21 @@ class SemanticVerifier:
             return 0.0
 
         raw_sim = dot / (norm1 * norm2)
-        # Scaled non-linear boost for strong topical keyword alignment
-        return max(0.0, min(1.0, round(raw_sim * 1.25, 4)))
+
+        # Content word coverage of the claim by the evidence (filtering function words)
+        stopwords = {"the", "is", "are", "has", "have", "was", "were", "of", "in", "and", "to", "a", "an", "at"}
+        c_words = set(re.findall(r"\b[a-zA-Z0-9_]{2,}\b", text1.lower())) - stopwords
+        e_words = set(re.findall(r"\b[a-zA-Z0-9_]{2,}\b", text2.lower())) - stopwords
+        
+        if not c_words:
+            c_words = set(re.findall(r"\b[a-zA-Z0-9_]{2,}\b", text1.lower()))
+            e_words = set(re.findall(r"\b[a-zA-Z0-9_]{2,}\b", text2.lower()))
+
+        coverage = len(c_words.intersection(e_words)) / max(len(c_words), 1)
+
+        # Composite semantic score
+        blended = (0.40 * raw_sim) + (0.60 * coverage)
+        return max(0.0, min(1.0, round(blended, 4)))
 
 
 semantic_verifier = SemanticVerifier()

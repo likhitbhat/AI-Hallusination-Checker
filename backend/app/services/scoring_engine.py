@@ -42,18 +42,36 @@ class HybridScoringEngine:
                 claim_id=claim_id,
                 claim=claim_text,
                 type=claim_type,
-                status=VerificationStatus.UNVERIFIABLE,
-                confidence=0.50,
+                status=VerificationStatus.NOT_FACT_CHECKABLE,
+                confidence=1.00,  # Confident that this is a subjective opinion
                 semantic_score=semantic_score,
                 nli=NLILabel.NEUTRAL,
                 nli_score=0.50,
                 source_reliability=0.0,
                 rule_score=rule_score,
                 evidence=[],
-                explanation="Subjective statement or future projection; cannot be empirically verified as true/false."
+                explanation="Subjective statement or opinion; cannot be empirically verified as true or false."
             )
 
-        # Handle zero external evidence: Must NEVER classify as hallucinated!
+        # 1. Deterministic Rule Failure (Checks override probabilistic web search)
+        if rule_score == 0.0:
+            top_source_rel = max((e.reliability_score for e in evidence), default=0.5) if evidence else 0.5
+            return ClaimResult(
+                claim_id=claim_id,
+                claim=claim_text,
+                type=claim_type,
+                status=VerificationStatus.CONTRADICTED,
+                confidence=1.00,  # 100% confidence in deterministic contradiction
+                semantic_score=round(semantic_score, 4),
+                nli=NLILabel.CONTRADICTION,
+                nli_score=1.00,
+                source_reliability=round(top_source_rel, 4),
+                rule_score=0.0,
+                evidence=evidence,
+                explanation=f"Deterministic rule contradiction: {rule_explanation}"
+            )
+
+        # 2. Handle zero external evidence: Critical rule - Must NEVER classify as hallucinated!
         if not evidence:
             return ClaimResult(
                 claim_id=claim_id,
@@ -67,67 +85,65 @@ class HybridScoringEngine:
                 source_reliability=0.0,
                 rule_score=rule_score,
                 evidence=[],
-                explanation="No verifiable external sources could be retrieved for this claim."
+                explanation="No verifiable external sources could be retrieved to corroborate this claim."
             )
 
         # Top source reliability score
         top_source_rel = max((e.reliability_score for e in evidence), default=0.5)
 
-        # NLI normalized signal
-        if nli_label == NLILabel.ENTAILMENT:
-            nli_val = nli_score
-        elif nli_label == NLILabel.CONTRADICTION:
-            nli_val = 1.0 - nli_score
-        else:
-            nli_val = 0.50
+        # 2. NLI Contradiction
+        if nli_label == NLILabel.CONTRADICTION:
+            return ClaimResult(
+                claim_id=claim_id,
+                claim=claim_text,
+                type=claim_type,
+                status=VerificationStatus.CONTRADICTED,
+                confidence=round(max(0.75, nli_score), 4),  # High confidence in the contradiction status
+                semantic_score=round(semantic_score, 4),
+                nli=NLILabel.CONTRADICTION,
+                nli_score=round(nli_score, 4),
+                source_reliability=round(top_source_rel, 4),
+                rule_score=round(rule_score, 4),
+                evidence=evidence,
+                explanation="Retrieved external evidence directly contradicts this claim."
+            )
 
-        # Evidence support score combines semantic overlap with source credibility
+        # 3. Evidence Support Score
         evidence_support = (semantic_score * 0.6) + (top_source_rel * 0.4)
+        nli_val = nli_score if nli_label == NLILabel.ENTAILMENT else 0.50
 
-        # Composite score calculation
+        # Composite verification score
         raw_score = (
             (self.w_evidence * evidence_support) +
             (self.w_nli * nli_val) +
             (self.w_source * top_source_rel) +
             (self.w_rule * rule_score)
         )
-        final_confidence = round(max(0.0, min(1.0, raw_score)), 4)
+        final_support = round(max(0.0, min(1.0, raw_score)), 4)
 
-        # Determine Status
-        if rule_score == 0.0 or nli_label == NLILabel.CONTRADICTION:
-            status = VerificationStatus.LIKELY_HALLUCINATED
-        elif final_confidence >= self.th_verified:
+        # Status categorization
+        if final_support >= self.th_verified and nli_label == NLILabel.ENTAILMENT:
             status = VerificationStatus.VERIFIED
-        elif final_confidence >= self.th_partial:
+            confidence = final_support
+            explanation = "Credible external evidence corroborates and entails this claim."
+        elif final_support >= self.th_partial:
             status = VerificationStatus.PARTIALLY_SUPPORTED
+            confidence = final_support
+            explanation = "Available evidence partially supports this claim, but full corroboration is incomplete."
         else:
-            status = VerificationStatus.LIKELY_HALLUCINATED
+            status = VerificationStatus.INSUFFICIENT_EVIDENCE
+            confidence = round(1.0 - final_support, 4)
+            explanation = "Available external sources do not provide sufficient clear support for this claim."
 
-        # Build comprehensive rationale
-        explanation_parts = []
-        if nli_label == NLILabel.CONTRADICTION:
-            explanation_parts.append("Retrieved external evidence directly contradicts this claim.")
-        elif nli_label == NLILabel.ENTAILMENT:
-            explanation_parts.append("Credible external evidence corroborates and entails this claim.")
-        else:
-            explanation_parts.append("Evidence neither conclusively proves nor disproves the statement.")
-
-        if rule_score == 0.0:
-            explanation_parts.append(f"Mathematical or chronological check failed: {rule_explanation}")
-        elif rule_score == 1.0 and ("verified" in rule_explanation.lower() or "arithmetic" in rule_explanation.lower()):
-            explanation_parts.append(rule_explanation)
-
-        if top_source_rel >= 0.90:
-            explanation_parts.append("Supported by high-reliability official or academic sources.")
-
-        explanation = " ".join(explanation_parts)
+        if top_source_rel >= 0.90 and status == VerificationStatus.VERIFIED:
+            explanation += " Supported by high-reliability official or academic sources."
 
         return ClaimResult(
             claim_id=claim_id,
             claim=claim_text,
             type=claim_type,
             status=status,
-            confidence=final_confidence,
+            confidence=confidence,
             semantic_score=round(semantic_score, 4),
             nli=nli_label,
             nli_score=round(nli_score, 4),
@@ -140,33 +156,64 @@ class HybridScoringEngine:
     def compute_overall_metrics(self, claim_results: List[ClaimResult]) -> Tuple[float, VerificationStatus, dict]:
         if not claim_results:
             return 0.0, VerificationStatus.INSUFFICIENT_EVIDENCE, {
-                "verified": 0, "partially_supported": 0, "hallucinated": 0, "insufficient_evidence": 0
+                "total_claims": 0,
+                "fact_checkable_claims": 0,
+                "verified": 0,
+                "partially_supported": 0,
+                "contradicted": 0,
+                "conflicting_evidence": 0,
+                "insufficient_evidence": 0,
+                "not_fact_checkable": 0,
+                "hallucinated": 0
             }
 
+        total_claims = len(claim_results)
+        fact_checkable = [c for c in claim_results if c.status != VerificationStatus.NOT_FACT_CHECKABLE]
+
         counts = {
+            "total_claims": total_claims,
+            "fact_checkable_claims": len(fact_checkable),
             "verified": sum(1 for c in claim_results if c.status == VerificationStatus.VERIFIED),
             "partially_supported": sum(1 for c in claim_results if c.status == VerificationStatus.PARTIALLY_SUPPORTED),
-            "hallucinated": sum(1 for c in claim_results if c.status == VerificationStatus.LIKELY_HALLUCINATED),
+            "contradicted": sum(1 for c in claim_results if c.status == VerificationStatus.CONTRADICTED),
+            "conflicting_evidence": sum(1 for c in claim_results if c.status == VerificationStatus.CONFLICTING_EVIDENCE),
             "insufficient_evidence": sum(1 for c in claim_results if c.status == VerificationStatus.INSUFFICIENT_EVIDENCE),
+            "not_fact_checkable": sum(1 for c in claim_results if c.status == VerificationStatus.NOT_FACT_CHECKABLE),
         }
+        counts["hallucinated"] = counts["contradicted"]
 
-        # Calculate weighted average reliability
-        verifiable = [c for c in claim_results if c.status != VerificationStatus.UNVERIFIABLE]
-        if not verifiable:
-            return 0.50, VerificationStatus.PARTIALLY_SUPPORTED, counts
+        # Calculate Overall Reliability over evaluated fact-checkable claims
+        evaluated_claims = [
+            c for c in fact_checkable
+            if c.status in (VerificationStatus.VERIFIED, VerificationStatus.PARTIALLY_SUPPORTED, VerificationStatus.CONTRADICTED, VerificationStatus.CONFLICTING_EVIDENCE)
+        ]
 
-        avg_score = round(sum(c.confidence for c in verifiable) / len(verifiable), 4)
-
-        if counts["hallucinated"] > 0 and (counts["hallucinated"] / len(verifiable)) >= 0.5:
-            overall_status = VerificationStatus.LIKELY_HALLUCINATED
-        elif avg_score >= self.th_verified:
-            overall_status = VerificationStatus.VERIFIED
-        elif avg_score >= self.th_partial:
-            overall_status = VerificationStatus.PARTIALLY_SUPPORTED
+        if evaluated_claims:
+            overall_score = round(
+                (counts["verified"] * 1.0 + counts["partially_supported"] * 0.5) / len(evaluated_claims),
+                4
+            )
+        elif counts["insufficient_evidence"] > 0:
+            overall_score = 0.0
         else:
-            overall_status = VerificationStatus.LIKELY_HALLUCINATED
+            overall_score = 1.0  # Only opinions present
 
-        return avg_score, overall_status, counts
+        # Overall Status
+        if counts["contradicted"] > 0:
+            if counts["contradicted"] == len(evaluated_claims):
+                overall_status = VerificationStatus.CONTRADICTED
+            else:
+                overall_status = VerificationStatus.PARTIALLY_SUPPORTED
+        elif overall_score >= self.th_verified and counts["verified"] > 0:
+            overall_status = VerificationStatus.VERIFIED
+        elif overall_score >= self.th_partial:
+            overall_status = VerificationStatus.PARTIALLY_SUPPORTED
+        elif counts["insufficient_evidence"] == len(fact_checkable):
+            overall_status = VerificationStatus.INSUFFICIENT_EVIDENCE
+        else:
+            overall_status = VerificationStatus.CONTRADICTED
+
+        return overall_score, overall_status, counts
 
 
 scoring_engine = HybridScoringEngine()

@@ -42,20 +42,39 @@ async def get_verification_details(
         raise HTTPException(status_code=404, detail="Verification request not found.")
 
     claim_results = []
-    verified_cnt = 0
-    partial_cnt = 0
-    hallucinated_cnt = 0
-    insufficient_cnt = 0
+    counts = {
+        "verified": 0,
+        "partially_supported": 0,
+        "contradicted": 0,
+        "conflicting_evidence": 0,
+        "insufficient_evidence": 0,
+        "not_fact_checkable": 0,
+        "hallucinated": 0
+    }
 
     for c in rec.claims:
-        if c.status == VerificationStatus.VERIFIED.value:
-            verified_cnt += 1
-        elif c.status == VerificationStatus.PARTIALLY_SUPPORTED.value:
-            partial_cnt += 1
-        elif c.status == VerificationStatus.LIKELY_HALLUCINATED.value:
-            hallucinated_cnt += 1
+        status_val = c.status
+        if status_val == "LIKELY_HALLUCINATED":
+            status_val = VerificationStatus.CONTRADICTED.value
+        elif status_val == "UNVERIFIABLE":
+            status_val = VerificationStatus.NOT_FACT_CHECKABLE.value
+
+        status_enum = VerificationStatus(status_val) if status_val in VerificationStatus._value2member_map_ else VerificationStatus.INSUFFICIENT_EVIDENCE
+
+        if status_enum == VerificationStatus.VERIFIED:
+            counts["verified"] += 1
+        elif status_enum == VerificationStatus.PARTIALLY_SUPPORTED:
+            counts["partially_supported"] += 1
+        elif status_enum == VerificationStatus.CONTRADICTED:
+            counts["contradicted"] += 1
+        elif status_enum == VerificationStatus.CONFLICTING_EVIDENCE:
+            counts["conflicting_evidence"] += 1
+        elif status_enum == VerificationStatus.NOT_FACT_CHECKABLE:
+            counts["not_fact_checkable"] += 1
         else:
-            insufficient_cnt += 1
+            counts["insufficient_evidence"] += 1
+
+        counts["hallucinated"] = counts["contradicted"]
 
         ev_items = [
             EvidenceItem(
@@ -72,7 +91,7 @@ async def get_verification_details(
             claim_id=c.id,
             claim=c.claim_text,
             type=ClaimType(c.claim_type) if c.claim_type in ClaimType._value2member_map_ else ClaimType.FACTUAL,
-            status=VerificationStatus(c.status),
+            status=status_enum,
             confidence=c.confidence,
             semantic_score=c.semantic_score,
             nli=NLILabel(c.nli_label) if c.nli_label in NLILabel._value2member_map_ else NLILabel.NEUTRAL,
@@ -83,14 +102,22 @@ async def get_verification_details(
             explanation=c.explanation or ""
         ))
 
+    overall_status_val = rec.overall_status
+    if overall_status_val == "LIKELY_HALLUCINATED":
+        overall_status_val = VerificationStatus.CONTRADICTED.value
+
     return VerifyResponse(
         request_id=rec.id,
         overall_score=rec.overall_score,
-        overall_status=VerificationStatus(rec.overall_status),
+        overall_status=VerificationStatus(overall_status_val) if overall_status_val in VerificationStatus._value2member_map_ else VerificationStatus.INSUFFICIENT_EVIDENCE,
         claims_analyzed=len(claim_results),
-        verified=verified_cnt,
-        partially_supported=partial_cnt,
-        hallucinated=hallucinated_cnt,
-        insufficient_evidence=insufficient_cnt,
+        fact_checkable_claims=len(claim_results) - counts["not_fact_checkable"],
+        verified=counts["verified"],
+        partially_supported=counts["partially_supported"],
+        contradicted=counts["contradicted"],
+        conflicting_evidence=counts["conflicting_evidence"],
+        insufficient_evidence=counts["insufficient_evidence"],
+        not_fact_checkable=counts["not_fact_checkable"],
+        hallucinated=counts["hallucinated"],
         claims=claim_results
     )
