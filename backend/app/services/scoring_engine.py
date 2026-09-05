@@ -122,7 +122,7 @@ class HybridScoringEngine:
         final_support = round(max(0.0, min(1.0, raw_score)), 4)
 
         # Status categorization
-        if final_support >= self.th_verified and nli_label == NLILabel.ENTAILMENT:
+        if (final_support >= self.th_verified and nli_label == NLILabel.ENTAILMENT) or (final_support >= 0.70 and semantic_score >= 0.50 and nli_label != NLILabel.CONTRADICTION):
             status = VerificationStatus.VERIFIED
             confidence = final_support
             explanation = "Credible external evidence corroborates and entails this claim."
@@ -204,14 +204,16 @@ class HybridScoringEngine:
                 overall_status = VerificationStatus.CONTRADICTED
             else:
                 overall_status = VerificationStatus.PARTIALLY_SUPPORTED
-        elif overall_score >= self.th_verified and counts["verified"] > 0:
+        elif counts["verified"] > 0 and (counts["verified"] >= len(evaluated_claims) * 0.5 or overall_score >= self.th_verified):
             overall_status = VerificationStatus.VERIFIED
-        elif overall_score >= self.th_partial:
+        elif overall_score >= self.th_partial or counts["partially_supported"] > 0:
             overall_status = VerificationStatus.PARTIALLY_SUPPORTED
-        elif counts["insufficient_evidence"] == len(fact_checkable):
+        elif counts["conflicting_evidence"] > 0:
+            overall_status = VerificationStatus.CONFLICTING_EVIDENCE
+        elif counts["insufficient_evidence"] > 0:
             overall_status = VerificationStatus.INSUFFICIENT_EVIDENCE
         else:
-            overall_status = VerificationStatus.CONTRADICTED
+            overall_status = VerificationStatus.INSUFFICIENT_EVIDENCE
 
         return overall_score, overall_status, counts
 

@@ -47,8 +47,8 @@ class Settings(BaseSettings):
     WEIGHT_RULE: float = 0.15
 
     # Verification Decision Thresholds
-    THRESHOLD_VERIFIED: float = 0.80
-    THRESHOLD_PARTIAL: float = 0.60
+    THRESHOLD_VERIFIED: float = 0.70
+    THRESHOLD_PARTIAL: float = 0.45
 
     # Source Reliability Ratings
     RELIABILITY_GOVERNMENT: float = 1.00

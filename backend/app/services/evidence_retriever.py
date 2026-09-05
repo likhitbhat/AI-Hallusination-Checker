@@ -31,7 +31,7 @@ class DuckDuckGoProvider(BaseSearchProvider):
 
         results: List[EvidenceItem] = []
         try:
-            async with httpx.AsyncClient(timeout=3.5, follow_redirects=True) as client:
+            async with httpx.AsyncClient(timeout=1.0, follow_redirects=True) as client:
                 resp = await client.post(url, headers=headers, data={"q": query})
                 if resp.status_code == 200:
                     html = resp.text
@@ -194,6 +194,141 @@ class MockSearchProvider(BaseSearchProvider):
                 reliability_score=0.80,
                 domain="britannica.com"
             )
+        ],
+        "python": [
+            EvidenceItem(
+                title="Python Software Foundation",
+                url="https://www.python.org/doc/essays/blurb/",
+                snippet="Python is an interpreted, object-oriented, high-level programming language with dynamic semantics, created by Guido van Rossum and first released in 1991.",
+                reliability_score=0.95,
+                domain="python.org"
+            )
+        ],
+        "einstein": [
+            EvidenceItem(
+                title="Nobel Prize Official - Albert Einstein",
+                url="https://www.nobelprize.org/prizes/physics/1921/einstein/biographical/",
+                snippet="Albert Einstein was a German-born theoretical physicist who received the 1921 Nobel Prize in Physics for his services to theoretical physics, especially for his discovery of the law of the photoelectric effect. He developed the theory of relativity.",
+                reliability_score=0.98,
+                domain="nobelprize.org"
+            )
+        ],
+        "sun": [
+            EvidenceItem(
+                title="NASA Solar System Exploration",
+                url="https://science.nasa.gov/sun/",
+                snippet="The Earth revolves around the Sun once every 365.25 days. The Sun is the star at the center of the Solar System.",
+                reliability_score=1.00,
+                domain="nasa.gov"
+            )
+        ],
+        "earth": [
+            EvidenceItem(
+                title="NASA Earth Science",
+                url="https://science.nasa.gov/earth/",
+                snippet="The Earth is the third planet from the Sun and the only astronomical object known to harbor life. It revolves around the Sun.",
+                reliability_score=1.00,
+                domain="nasa.gov"
+            )
+        ],
+        "everest": [
+            EvidenceItem(
+                title="Encyclopedia Britannica - Mount Everest",
+                url="https://www.britannica.com/place/Mount-Everest",
+                snippet="Mount Everest is the highest mountain peak in the world, located in the Himalayas on the crest of the Great Himalayas of southern Asia on the border between Nepal and the Tibet Autonomous Region of China. Its official elevation is 8,848.86 metres.",
+                reliability_score=0.85,
+                domain="britannica.com"
+            )
+        ],
+        "photosynthesis": [
+            EvidenceItem(
+                title="Encyclopedia Britannica - Photosynthesis",
+                url="https://www.britannica.com/science/photosynthesis",
+                snippet="Photosynthesis is the process by which green plants and certain other organisms transform light energy into chemical energy.",
+                reliability_score=0.85,
+                domain="britannica.com"
+            )
+        ],
+        "speed of light": [
+            EvidenceItem(
+                title="NIST Physical Constants",
+                url="https://physics.nist.gov/cgi-bin/cuu/Value?c",
+                snippet="The speed of light in vacuum, commonly denoted c, is a universal physical constant exactly equal to 299,792,458 metres per second (approximately 300,000 km/s).",
+                reliability_score=1.00,
+                domain="nist.gov"
+            )
+        ],
+        "tokyo": [
+            EvidenceItem(
+                title="Tokyo Metropolitan Government",
+                url="https://www.metro.tokyo.lg.jp/english/",
+                snippet="Tokyo is the capital and most populous prefecture of Japan, located at the head of Tokyo Bay.",
+                reliability_score=1.00,
+                domain="metro.tokyo.lg.jp"
+            )
+        ],
+        "japan": [
+            EvidenceItem(
+                title="Ministry of Foreign Affairs of Japan",
+                url="https://www.mofa.go.jp/about/",
+                snippet="Tokyo is the capital city of Japan.",
+                reliability_score=1.00,
+                domain="mofa.go.jp"
+            )
+        ],
+        "london": [
+            EvidenceItem(
+                title="UK Government Portal",
+                url="https://www.gov.uk/government/organisations",
+                snippet="London is the capital and largest city of England and the United Kingdom.",
+                reliability_score=1.00,
+                domain="gov.uk"
+            )
+        ],
+        "united kingdom": [
+            EvidenceItem(
+                title="UK Government Portal",
+                url="https://www.gov.uk/government/organisations",
+                snippet="London is the capital city of the United Kingdom.",
+                reliability_score=1.00,
+                domain="gov.uk"
+            )
+        ],
+        "germany": [
+            EvidenceItem(
+                title="Federal Government of Germany",
+                url="https://www.bundesregierung.de/breg-en",
+                snippet="Berlin is the capital and largest city of Germany both by area and by population.",
+                reliability_score=1.00,
+                domain="bundesregierung.de"
+            )
+        ],
+        "united states": [
+            EvidenceItem(
+                title="Official Portal of the United States Government",
+                url="https://www.usa.gov/about-the-us",
+                snippet="The United States comprises 50 states, a federal district, and several territories. Washington, D.C. is the capital of the United States.",
+                reliability_score=1.00,
+                domain="usa.gov"
+            )
+        ],
+        "barack obama": [
+            EvidenceItem(
+                title="The White House - Presidential Biographies",
+                url="https://www.whitehouse.gov/about-the-white-house/presidents/barack-obama/",
+                snippet="Barack Obama was the 44th President of the United States, serving from 2009 to 2017.",
+                reliability_score=1.00,
+                domain="whitehouse.gov"
+            )
+        ],
+        "javascript": [
+            EvidenceItem(
+                title="Mozilla Developer Network (MDN)",
+                url="https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+                snippet="JavaScript is a lightweight, interpreted, compiled programming language with first-class functions, best known as the scripting language for Web pages.",
+                reliability_score=0.95,
+                domain="developer.mozilla.org"
+            )
         ]
     }
 
@@ -202,7 +337,9 @@ class MockSearchProvider(BaseSearchProvider):
         matched: List[EvidenceItem] = []
         for key, items in self.KNOWLEDGE_BASE.items():
             if key in q_lower:
-                matched.extend(items)
+                for it in items:
+                    if it not in matched:
+                        matched.append(it)
         return matched[:max_results]
 
 

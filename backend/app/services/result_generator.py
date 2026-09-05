@@ -5,7 +5,8 @@ from app.api.schemas import (
     VerifyRequest,
     VerifyResponse,
     ClaimResult,
-    VerificationStatus
+    VerificationStatus,
+    NLILabel
 )
 from app.services.claim_extractor import claim_extractor
 from app.services.claim_classifier import claim_classifier
@@ -96,8 +97,11 @@ class ResultGenerator:
 
             # C. Semantic Similarity & NLI against candidate evidence
             best_semantic = 0.0
-            best_nli_label = None
-            best_nli_score = 0.0
+            best_nli_label = NLILabel.NEUTRAL
+            best_nli_score = 0.50
+
+            has_entailment = False
+            has_contradiction = False
 
             for ev in evidence_items:
                 sim = semantic_verifier.compute_similarity(claim.text, ev.snippet)
@@ -105,10 +109,21 @@ class ResultGenerator:
                     best_semantic = sim
 
                 label, nli_conf = nli_verifier.verify(claim.text, ev.snippet)
-                # Prioritize contradiction or high entailment
-                if best_nli_label is None or label.value == "CONTRADICTION" or nli_conf > best_nli_score:
+
+                # Prioritize strong entailment from corroborated evidence
+                if label == NLILabel.ENTAILMENT and nli_conf >= 0.70:
+                    has_entailment = True
                     best_nli_label = label
-                    best_nli_score = nli_conf
+                    best_nli_score = max(best_nli_score, nli_conf)
+                elif label == NLILabel.CONTRADICTION and nli_conf >= 0.85 and sim >= 0.20:
+                    has_contradiction = True
+                    if not has_entailment:
+                        best_nli_label = label
+                        best_nli_score = nli_conf
+                elif not has_entailment and not has_contradiction:
+                    if nli_conf > best_nli_score:
+                        best_nli_label = label
+                        best_nli_score = nli_conf
 
             # D. Compute Hybrid Verification Score
             claim_res = scoring_engine.compute_claim_score(

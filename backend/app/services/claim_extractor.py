@@ -95,8 +95,15 @@ class ClaimExtractor:
 
         atomic_claims = []
         counter = 1
+        last_subject = None
 
         for sentence in candidates:
+            # Pronoun coreference resolution: "It was released in 1991" -> "Python was released in 1991"
+            if last_subject:
+                pronoun_match = re.match(r"^(It|He|She|They)\s+(?:is|was|are|were|has|had|serves|served|became)\b", sentence, re.IGNORECASE)
+                if pronoun_match:
+                    sentence = re.sub(r"^(?:It|He|She|They)\b", last_subject, sentence, count=1, flags=re.IGNORECASE)
+
             # Check for coordinate clauses with numbers e.g.
             # "India has 28 states and 8 Union Territories" -> 2 claims
             coord_match = re.match(r"^(.+?)\s+(?:and|as well as)\s+([0-9]+\s+.+)$", sentence, re.IGNORECASE)
@@ -123,6 +130,13 @@ class ClaimExtractor:
                     sentence += "."
                 atomic_claims.append(ExtractedClaim(id=f"claim_{counter}", text=sentence))
                 counter += 1
+
+            # Update last known subject for subsequent coreference
+            subj_cand = re.match(r"^([A-Z][a-zA-Z0-9\s]{1,30}?)\s+(?:is|was|are|were|has|have|had|formed|developed|created|comprises|consists|contains|located|revolves|won|received)\b", sentence)
+            if subj_cand:
+                cand_str = subj_cand.group(1).strip()
+                if cand_str.lower() not in ("it", "he", "she", "they", "there", "here", "this", "that"):
+                    last_subject = cand_str
 
             if counter > settings.MAX_CLAIMS_PER_REQUEST:
                 break

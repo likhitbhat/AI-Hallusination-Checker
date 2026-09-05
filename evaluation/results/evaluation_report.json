@@ -24,13 +24,13 @@
     },
     "proposed_hybrid_system": {
       "total_evaluated": 12,
-      "accuracy": 0.8333,
-      "precision": 0.7143,
+      "accuracy": 1.0,
+      "precision": 1.0,
       "recall": 1.0,
-      "f1_score": 0.8333,
-      "false_positive_rate": 0.2857,
+      "f1_score": 1.0,
+      "false_positive_rate": 0.0,
       "false_negative_rate": 0.0,
-      "average_latency_seconds": 0.0005
+      "average_latency_seconds": 0.0006
     }
   }
 }

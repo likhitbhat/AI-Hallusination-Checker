@@ -55,68 +55,95 @@ class NLIVerifier:
         c_clean = claim.lower().strip()
         e_clean = evidence.lower().strip()
 
+        stopwords = {
+            "the", "is", "are", "was", "were", "in", "on", "at", "to", "for", "of",
+            "and", "a", "an", "it", "this", "that", "with", "by", "as", "from", "be",
+            "has", "have", "had", "been"
+        }
+
         # 1. Zero / Uninhabited / Never Contradiction:
-        zero_markers = ["uninhabited", "zero", "never visited", "never colonized", "no human", "no evidence"]
+        zero_markers = [
+            "uninhabited", "zero human", "population is zero", "never visited",
+            "never colonized", "no human", "no evidence that", "unproven", "fictional"
+        ]
         has_zero_marker = any(z in e_clean for z in zero_markers)
         if has_zero_marker and any(w in c_clean for w in ["population", "million", "colonized", "inhabited", "humans"]):
             return NLILabel.CONTRADICTION, 0.98
 
-        # 2. Number Discrepancy Detection:
-        # e.g., Claim says "29 states" while Evidence says "28 states"
-        claim_nums = set(re.findall(r"\b\d+\b", c_clean))
-        evidence_nums = set(re.findall(r"\b\d+\b", e_clean))
+        # 2. Capital City / Entity Mismatch:
+        # Check patterns: "capital of X is Y" or "Y is the capital of X"
+        cap_patterns = [
+            r"capital (?:city\s+)?of\s+([a-z\s]+?)\s+is\s+([a-z]+)",
+            r"([a-z]+)\s+is the capital (?:city\s+)?of\s+([a-z\s]+)"
+        ]
+        claimed_country = None
+        claimed_city = None
 
-        # Check for context overlap around differing numbers
-        if claim_nums and evidence_nums:
-            diff = claim_nums.symmetric_difference(evidence_nums)
-            if diff:
-                # Check if same contextual anchor exists in both
-                for word in ["state", "states", "territory", "union", "year", "percent", "%", "million", "population"]:
-                    if word in c_clean and word in e_clean:
-                        return NLILabel.CONTRADICTION, 0.95
-
-        # 3. Capital City / Entity Mismatch:
-        # e.g. Claim: "capital of australia is sydney", Evidence: "canberra is the capital"
-        capital_match = re.search(r"capital of ([a-z]+)\s+is\s+([a-z]+)", c_clean)
-        if capital_match:
-            country = capital_match.group(1)
-            claimed_city = capital_match.group(2)
-            if country in e_clean:
-                ev_capital = re.search(r"([a-z]+)\s+is the capital (?:city\s+)?of\s+" + country, e_clean)
-                if ev_capital and ev_capital.group(1) != claimed_city:
-                    return NLILabel.CONTRADICTION, 0.96
-            if "canberra" in e_clean and "australia" in e_clean and claimed_city == "sydney":
-                return NLILabel.CONTRADICTION, 0.96
-
-        # 3. Negation Contradiction:
-        # e.g., Claim asserts "X is Y" while Evidence says "X is not Y" or "never Y"
-        negations = ["not", "never", "no longer", "false", "disproven", "refuted", "failed to"]
-        c_has_neg = any(f" {n} " in f" {c_clean} " for n in negations)
-        e_has_neg = any(f" {n} " in f" {e_clean} " for n in negations)
-
-        if c_has_neg != e_has_neg:
-            # Check overlap of non-negated words
-            c_words = set(re.findall(r"\b[a-z]{4,}\b", c_clean)) - set(negations)
-            e_words = set(re.findall(r"\b[a-z]{4,}\b", e_clean)) - set(negations)
-            overlap = len(c_words.intersection(e_words))
-            if overlap >= 3:
-                return NLILabel.CONTRADICTION, 0.92
-
-        # 4. Entailment Matching:
-        # High token subset and semantic alignment
-        c_tokens = set(re.findall(r"\b[a-z0-9]{3,}\b", c_clean))
-        e_tokens = set(re.findall(r"\b[a-z0-9]{3,}\b", e_clean))
-
-        if c_tokens and c_tokens.issubset(e_tokens):
-            return NLILabel.ENTAILMENT, 0.95
-
-        overlap_ratio = len(c_tokens.intersection(e_tokens)) / max(len(c_tokens), 1)
-        if overlap_ratio >= 0.70:
-            return NLILabel.ENTAILMENT, 0.88
-        elif overlap_ratio >= 0.40:
-            return NLILabel.NEUTRAL, 0.65
+        m1 = re.search(r"capital (?:city\s+)?of\s+([a-z]+)\s+is\s+([a-z]+)", c_clean)
+        if m1:
+            claimed_country = m1.group(1).strip()
+            claimed_city = m1.group(2).strip()
         else:
-            return NLILabel.NEUTRAL, 0.50
+            m2 = re.search(r"([a-z]+)\s+is the capital (?:city\s+)?of\s+([a-z]+)", c_clean)
+            if m2:
+                claimed_city = m2.group(1).strip()
+                claimed_country = m2.group(2).strip()
+
+        if claimed_country and claimed_city and claimed_country in e_clean:
+            ev_cap = re.search(r"([a-z]+)\s+is the capital (?:city\s+)?of\s+" + re.escape(claimed_country), e_clean)
+            if not ev_cap:
+                ev_cap = re.search(r"capital (?:city\s+)?of\s+" + re.escape(claimed_country) + r"\s+is\s+([a-z]+)", e_clean)
+            if ev_cap:
+                actual_city = ev_cap.group(1).strip()
+                if actual_city != claimed_city:
+                    return NLILabel.CONTRADICTION, 0.96
+
+        # 3. Number Discrepancy Detection:
+        # e.g., Claim says "10 states" while Evidence says "6 states"
+        claim_anchor_matches = re.findall(r"\b(\d+)\s+([a-z]{3,})\b", c_clean)
+        for c_num_str, anchor in claim_anchor_matches:
+            c_num = int(c_num_str)
+            # Find occurrences of the same anchor in evidence
+            ev_anchor_matches = re.findall(r"\b(\d+)\s+" + re.escape(anchor) + r"\b", e_clean)
+            if ev_anchor_matches:
+                ev_nums = [int(n) for n in ev_anchor_matches]
+                # If evidence specifically gives a different number for this exact anchor
+                if c_num not in ev_nums and any(abs(c_num - en) > 0 for en in ev_nums):
+                    return NLILabel.CONTRADICTION, 0.95
+
+        # 4. Negation Contradiction (Sentence-level check):
+        # Only trigger if the evidence directly negates the claim predicate
+        negation_markers = ["not", "never", "no longer", "false", "disproven", "refuted", "myth"]
+        e_sentences = re.split(r"[.!?]\s+", e_clean)
+        c_content_words = set(w for w in re.findall(r"\b[a-z]{3,}\b", c_clean) if w not in stopwords)
+
+        for sent in e_sentences:
+            s_words = set(w for w in re.findall(r"\b[a-z]{3,}\b", sent) if w not in stopwords)
+            overlap = c_content_words.intersection(s_words)
+            # If a single sentence strongly matches the claim and contains explicit refutation of it
+            if len(c_content_words) >= 3 and len(overlap) / len(c_content_words) >= 0.70:
+                has_neg = any(f" {n} " in f" {sent} " for n in negation_markers)
+                c_has_neg = any(f" {n} " in f" {c_clean} " for n in negation_markers)
+                if has_neg and not c_has_neg:
+                    # Check if the negation directly negates the relationship (e.g. "is not", "not a")
+                    if re.search(r"\b(?:is|are|was|were|has|have)\s+not\b", sent) or "no longer" in sent or "myth" in sent:
+                        return NLILabel.CONTRADICTION, 0.92
+
+        # 5. Entailment Matching:
+        # High token subset and semantic alignment
+        if c_content_words:
+            e_all_words = set(w for w in re.findall(r"\b[a-z0-9]{3,}\b", e_clean) if w not in stopwords)
+            overlap_count = len(c_content_words.intersection(e_all_words))
+            overlap_ratio = overlap_count / len(c_content_words)
+
+            if overlap_ratio >= 0.60 or c_content_words.issubset(e_all_words):
+                return NLILabel.ENTAILMENT, 0.92
+            elif overlap_ratio >= 0.35:
+                return NLILabel.NEUTRAL, 0.60
+            else:
+                return NLILabel.NEUTRAL, 0.40
+
+        return NLILabel.NEUTRAL, 0.50
 
 
 nli_verifier = NLIVerifier()
