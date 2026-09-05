@@ -1,0 +1,405 @@
+/* AI Hallucination Checker - Popup Styles */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 380px;
+  min-height: 520px;
+  background: #090d16;
+  color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+  padding: 16px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  font-size: 24px;
+}
+
+.logo-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #f8fafc;
+}
+
+.logo-subtitle {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.backend-status .status-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #64748b;
+  transition: background-color 0.3s ease;
+}
+.backend-status.online .status-dot {
+  background-color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+.backend-status.offline .status-dot {
+  background-color: #ef4444;
+}
+
+/* Error Banner */
+.banner {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 12px;
+}
+.error-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding-top: 14px;
+}
+
+/* Results Card */
+.results-card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.gauge-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.gauge-value {
+  font-size: 42px;
+  font-weight: 800;
+  color: #38bdf8;
+  margin: 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.status-pill.status-VERIFIED {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+.status-pill.status-PARTIALLY_SUPPORTED {
+  background: #78350f;
+  color: #fde68a;
+}
+.status-pill.status-LIKELY_HALLUCINATED {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+.status-pill.status-neutral {
+  background: #1f2937;
+  color: #9ca3af;
+}
+
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #1f2937;
+}
+
+.breakdown-item {
+  background: #1f2937;
+  padding: 6px 4px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.breakdown-item .icon {
+  font-size: 13px;
+}
+
+.breakdown-item .count {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 2px 0;
+}
+
+.breakdown-item .lbl {
+  font-size: 9px;
+  color: #9ca3af;
+  text-transform: uppercase;
+}
+
+/* Actions */
+.actions-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+}
+
+.btn-secondary {
+  background: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+}
+.btn-secondary:hover {
+  background: #334155;
+  color: #ffffff;
+}
+
+.btn-sm {
+  padding: 8px 12px;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+/* Loading View */
+.loading-view {
+  text-align: center;
+  padding: 30px 10px;
+  background: #111827;
+  border-radius: 12px;
+  border: 1px solid #1f2937;
+  margin-bottom: 14px;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(56, 189, 248, 0.2);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-step-title {
+  font-size: 14px;
+  color: #f8fafc;
+  margin-bottom: 4px;
+}
+
+.loading-step-detail {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 14px;
+}
+
+.progress-bar-track {
+  width: 80%;
+  height: 5px;
+  background: #1f2937;
+  border-radius: 4px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  width: 25%;
+  height: 100%;
+  background: #38bdf8;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Manual Text Area */
+.manual-section {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  display: block;
+}
+
+textarea {
+  width: 100%;
+  height: 85px;
+  background: #090d16;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #f8fafc;
+  padding: 8px;
+  font-size: 12px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+textarea:focus {
+  border-color: #38bdf8;
+}
+
+/* Claims List */
+.claims-section {
+  margin-top: 10px;
+}
+
+.claims-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.claim-card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+.claim-card:hover {
+  border-color: #38bdf8;
+}
+
+.claim-card.status-VERIFIED {
+  border-left: 3px solid #10b981;
+}
+.claim-card.status-PARTIALLY_SUPPORTED {
+  border-left: 3px solid #f59e0b;
+}
+.claim-card.status-LIKELY_HALLUCINATED {
+  border-left: 3px solid #ef4444;
+}
+.claim-card.status-INSUFFICIENT_EVIDENCE {
+  border-left: 3px solid #94a3b8;
+}
+
+.claim-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.claim-type-tag {
+  font-size: 9px;
+  text-transform: uppercase;
+  background: #1f2937;
+  color: #94a3b8;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.claim-card-text {
+  font-size: 12px;
+  color: #e2e8f0;
+  margin-bottom: 6px;
+}
+
+.claim-card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #1e293b;
+  margin-top: 10px;
+}
+
+.footer-link {
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 11px;
+  transition: color 0.2s;
+}
+.footer-link:hover {
+  color: #38bdf8;
+}
+
+.hidden {
+  display: none !important;
+}

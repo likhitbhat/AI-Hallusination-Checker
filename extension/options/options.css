@@ -1,0 +1,99 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 24px;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  max-width: 480px;
+  width: 100%;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #334155;
+}
+
+.header h2 {
+  font-size: 18px;
+  margin: 0 0 6px 0;
+}
+
+.header p {
+  color: #94a3b8;
+  font-size: 13px;
+  margin: 0;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+input[type="url"] {
+  width: 100%;
+  padding: 10px;
+  background: #0f172a;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  color: #f8fafc;
+  box-sizing: border-box;
+}
+
+small {
+  display: block;
+  color: #94a3b8;
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.checkbox-group label {
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.save-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+.save-btn:hover {
+  background: #1d4ed8;
+}
+
+.status-msg {
+  font-size: 12px;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  display: none;
+}
+.status-msg.success {
+  display: block;
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border: 1px solid #10b981;
+}

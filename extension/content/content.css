@@ -1,0 +1,204 @@
+/* AI Hallucination Checker Content Styles */
+
+.ai-fact-highlight {
+  position: relative;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin: 0 1px;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  display: inline;
+}
+
+/* Status Highlighting Styles */
+.ai-fact-highlight.status-VERIFIED {
+  background-color: rgba(16, 185, 129, 0.22);
+  border-bottom: 2px solid #10b981;
+}
+.ai-fact-highlight.status-VERIFIED:hover {
+  background-color: rgba(16, 185, 129, 0.35);
+}
+
+.ai-fact-highlight.status-PARTIALLY_SUPPORTED {
+  background-color: rgba(245, 158, 11, 0.22);
+  border-bottom: 2px solid #f59e0b;
+}
+.ai-fact-highlight.status-PARTIALLY_SUPPORTED:hover {
+  background-color: rgba(245, 158, 11, 0.35);
+}
+
+.ai-fact-highlight.status-LIKELY_HALLUCINATED {
+  background-color: rgba(239, 68, 68, 0.22);
+  border-bottom: 2px solid #ef4444;
+}
+.ai-fact-highlight.status-LIKELY_HALLUCINATED:hover {
+  background-color: rgba(239, 68, 68, 0.35);
+}
+
+.ai-fact-highlight.status-INSUFFICIENT_EVIDENCE {
+  background-color: rgba(148, 163, 184, 0.2);
+  border-bottom: 2px dashed #94a3b8;
+}
+
+.ai-fact-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: system-ui, -apple-system, sans-serif;
+  vertical-align: middle;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 4px;
+  user-select: none;
+}
+.ai-fact-badge.status-VERIFIED {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+.ai-fact-badge.status-PARTIALLY_SUPPORTED {
+  background: #78350f;
+  color: #fde68a;
+}
+.ai-fact-badge.status-LIKELY_HALLUCINATED {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+.ai-fact-badge.status-INSUFFICIENT_EVIDENCE {
+  background: #1e293b;
+  color: #cbd5e1;
+}
+
+/* Detail Popover Card */
+#ai-fact-checker-popover {
+  position: absolute;
+  z-index: 999999;
+  width: 380px;
+  max-width: 90vw;
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 16px;
+  display: none;
+  animation: popoverFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popoverFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#ai-fact-checker-popover .popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1e293b;
+}
+
+#ai-fact-checker-popover .popover-title {
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+#ai-fact-checker-popover .popover-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+#ai-fact-checker-popover .popover-close:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+#ai-fact-checker-popover .claim-text {
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 10px;
+  background: #1e293b;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+#ai-fact-checker-popover .metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+#ai-fact-checker-popover .metric-box {
+  background: #1e293b;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+#ai-fact-checker-popover .metric-box .label {
+  font-size: 10px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+#ai-fact-checker-popover .metric-box .value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+#ai-fact-checker-popover .explanation {
+  background: rgba(30, 41, 59, 0.5);
+  border-left: 3px solid #38bdf8;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+#ai-fact-checker-popover .evidence-section {
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+#ai-fact-checker-popover .evidence-item {
+  background: #1e293b;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+#ai-fact-checker-popover .evidence-item a {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 12px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#ai-fact-checker-popover .evidence-item a:hover {
+  text-decoration: underline;
+}
+
+#ai-fact-checker-popover .evidence-item p {
+  margin: 4px 0 0 0;
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.4;
+}

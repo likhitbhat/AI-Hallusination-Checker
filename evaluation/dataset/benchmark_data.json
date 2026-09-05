@@ -1,0 +1,49 @@
+[
+  {
+    "id": "eval_01",
+    "platform": "chatgpt",
+    "text": "India has 28 states and 8 Union Territories. The capital of Karnataka is Bengaluru. Karnataka was formed in 1956.",
+    "ground_truth_claims": [
+      {"text": "India has 28 states.", "label": "VERIFIED", "type": "numerical"},
+      {"text": "India has 8 Union Territories.", "label": "VERIFIED", "type": "numerical"},
+      {"text": "The capital of Karnataka is Bengaluru.", "label": "VERIFIED", "type": "geographical"},
+      {"text": "Karnataka was formed in 1956.", "label": "VERIFIED", "type": "historical"}
+    ]
+  },
+  {
+    "id": "eval_02",
+    "platform": "chatgpt",
+    "text": "The capital of Australia is Sydney. Australia has 10 states.",
+    "ground_truth_claims": [
+      {"text": "The capital of Australia is Sydney.", "label": "LIKELY_HALLUCINATED", "type": "geographical"},
+      {"text": "Australia has 10 states.", "label": "LIKELY_HALLUCINATED", "type": "numerical"}
+    ]
+  },
+  {
+    "id": "eval_03",
+    "platform": "gemini",
+    "text": "Water boils at approximately 100°C at standard atmospheric pressure. 25% of 200 is 60.",
+    "ground_truth_claims": [
+      {"text": "Water boils at approximately 100°C at standard atmospheric pressure.", "label": "VERIFIED", "type": "scientific"},
+      {"text": "25% of 200 is 60.", "label": "LIKELY_HALLUCINATED", "type": "numerical"}
+    ]
+  },
+  {
+    "id": "eval_04",
+    "platform": "claude",
+    "text": "The population of Mars is 5 million humans. Mars was colonized in the year 1820.",
+    "ground_truth_claims": [
+      {"text": "The population of Mars is 5 million humans.", "label": "LIKELY_HALLUCINATED", "type": "factual"},
+      {"text": "Mars was colonized in the year 1820.", "label": "LIKELY_HALLUCINATED", "type": "historical"}
+    ]
+  },
+  {
+    "id": "eval_05",
+    "platform": "generic",
+    "text": "The Eiffel Tower is located in Paris, France. Paris is arguably the most beautiful city in Europe.",
+    "ground_truth_claims": [
+      {"text": "The Eiffel Tower is located in Paris, France.", "label": "VERIFIED", "type": "geographical"},
+      {"text": "Paris is arguably the most beautiful city in Europe.", "label": "UNVERIFIABLE", "type": "opinion"}
+    ]
+  }
+]

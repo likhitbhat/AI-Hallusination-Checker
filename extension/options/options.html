@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Settings - AI Hallucination Checker</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>⚙️ Extension Settings</h2>
+      <p>Configure backend connectivity and verification preferences.</p>
+    </div>
+
+    <form id="settingsForm">
+      <div class="form-group">
+        <label for="backendUrlInput">Backend Service URL</label>
+        <input type="url" id="backendUrlInput" required placeholder="http://127.0.0.1:8000">
+        <small>Default local development server is <code>http://127.0.0.1:8000</code></small>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="autoHighlightCheckbox" checked>
+          Automatically highlight claims in supported AI pages
+        </label>
+      </div>
+
+      <div class="status-msg" id="statusMsg"></div>
+
+      <button type="submit" class="save-btn">Save Settings</button>
+    </form>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>

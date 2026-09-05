@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Hallucination Checker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-area">
+        <div class="logo-icon">🛡️</div>
+        <div>
+          <h1 class="logo-title">AI FACT CHECKER</h1>
+          <p class="logo-subtitle">Hybrid Verification System</p>
+        </div>
+      </div>
+      <div class="backend-status" id="backendStatusIndicator" title="Backend Status: Checking...">
+        <span class="status-dot"></span>
+      </div>
+    </header>
+
+    <!-- Error Banner -->
+    <div id="errorBanner" class="banner error-banner hidden">
+      <span id="errorMessage">Unable to verify response.</span>
+    </div>
+
+    <!-- Main Views Container -->
+    <main class="main-content">
+      <!-- Loading State -->
+      <div id="loadingView" class="loading-view hidden">
+        <div class="spinner"></div>
+        <h3 id="loadingStepTitle" class="loading-step-title">Analyzing AI Response...</h3>
+        <p id="loadingStepDetail" class="loading-step-detail">Extracting atomic claims...</p>
+        <div class="progress-bar-track">
+          <div id="progressBarFill" class="progress-bar-fill"></div>
+        </div>
+      </div>
+
+      <!-- Results View -->
+      <div id="resultsCard" class="results-card hidden">
+        <div class="gauge-container">
+          <div class="gauge-label">Overall Reliability</div>
+          <div id="overallScoreText" class="gauge-value">--%</div>
+          <div id="overallStatusBadge" class="status-pill status-neutral">READY</div>
+        </div>
+
+        <div class="breakdown-grid">
+          <div class="breakdown-item verified">
+            <span class="icon">✅</span>
+            <span id="verifiedCount" class="count">0</span>
+            <span class="lbl">Verified</span>
+          </div>
+          <div class="breakdown-item partial">
+            <span class="icon">⚠️</span>
+            <span id="partialCount" class="count">0</span>
+            <span class="lbl">Partial</span>
+          </div>
+          <div class="breakdown-item hallucinated">
+            <span class="icon">❌</span>
+            <span id="hallucinatedCount" class="count">0</span>
+            <span class="lbl">Hallucinated</span>
+          </div>
+          <div class="breakdown-item insufficient">
+            <span class="icon">⚪</span>
+            <span id="insufficientCount" class="count">0</span>
+            <span class="lbl">Insufficient</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions-group">
+        <button id="verifyResponseBtn" class="btn btn-primary">
+          <span class="btn-icon">🔍</span> Verify Page Response
+        </button>
+        <button id="toggleManualBtn" class="btn btn-secondary">
+          <span class="btn-icon">📝</span> Manual / Paste Input
+        </button>
+      </div>
+
+      <!-- Manual Input Section -->
+      <div id="manualSection" class="manual-section hidden">
+        <label for="manualTextArea" class="section-label">Paste AI Response Text:</label>
+        <textarea id="manualTextArea" placeholder="Paste generated text from ChatGPT, Gemini, or Claude to verify factual claims..."></textarea>
+        <button id="verifyManualBtn" class="btn btn-primary btn-sm">
+          Verify Pasted Text
+        </button>
+      </div>
+
+      <!-- Claims Detail Accordion List -->
+      <div id="claimsSection" class="claims-section hidden">
+        <div class="section-header">
+          <span class="section-label">Extracted Claims (<span id="claimsTotalCount">0</span>)</span>
+        </div>
+        <div id="claimsList" class="claims-list"></div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <a href="#" id="openDashboardLink" class="footer-link">📊 Open Dashboard</a>
+      <a href="#" id="openOptionsLink" class="footer-link">⚙️ Settings</a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
